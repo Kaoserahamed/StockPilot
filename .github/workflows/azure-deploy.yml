@@ -50,6 +50,14 @@ jobs:
             --container-registry-user $ACR_USERNAME \
             --container-registry-password $ACR_PASSWORD
 
+      - name: Ensure ACR password is set as app setting
+        run: |
+          # Re-set the password to ensure it's not lost after container config
+          az webapp config appsettings set \
+            --name ${{ env.BACKEND_APP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings DOCKER_REGISTRY_SERVER_PASSWORD=$ACR_PASSWORD
+
       - name: Update and restart backend webapp
         run: |
           az webapp restart \
@@ -94,6 +102,14 @@ jobs:
             --container-registry-url https://${{ env.ACR_NAME }}.azurecr.io \
             --container-registry-user $ACR_USERNAME \
             --container-registry-password $ACR_PASSWORD
+
+      - name: Ensure ACR password is set as app setting (frontend)
+        run: |
+          # Re-set the password to ensure it's not lost after container config
+          az webapp config appsettings set \
+            --name ${{ env.FRONTEND_APP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings DOCKER_REGISTRY_SERVER_PASSWORD=$ACR_PASSWORD
 
       - name: Update and restart frontend webapp
         run: |
