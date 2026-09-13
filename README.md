@@ -1,238 +1,181 @@
-# StockPilot — Inventory & POS SaaS
+# StockPilot - Inventory & POS SaaS
 
-**All-in-one point-of-sale, inventory, finance and AI insights platform for small retail businesses.**
-
-StockPilot helps busy retail counters run their whole operation from one calm workspace — a fast POS terminal with invoice/PDF generation, live inventory with low-stock alerts, purchase and supplier tracking, profit & finance dashboards, report exports (CSV / Excel / PDF) and an AI assistant that forecasts demand, flags anomalies and recommends reorders.
-
----
-
-## Table of Contents
-
-1. [Features](#features)
-2. [Tech stack](#tech-stack)
-3. [Repository layout](#repository-layout)
-4. [How to run locally (Windows, no Docker)](#run-locally)
-5. [Run the tests](#run-the-tests)
-6. [Deploy (Docker + Postgres)](#deploy)
-7. [API overview](#api-overview)
-
----
+A modern, full-stack Point of Sale and Inventory Management system built with FastAPI (Python) and Next.js (React/TypeScript).
 
 ## Features
 
-### 🔐 Onboarding & access
-- **Registration & JWT login** — owner signs up with name, email/phone, password and shop profile.
-- **Password reset** — request a reset code, then set a new password.
-- **Role-based access (RBAC)** — `Owner`, `Manager` and `Cashier` roles, enforced on every endpoint.
-- **Team management** — create employee accounts, activate/deactivate, re-assign roles, reset passwords, remove members.
+- 🔐 **Multi-tenant SaaS** - Support for multiple businesses with role-based access
+- 📊 **Inventory Management** - Track products, stock levels, and movements
+- 💰 **Point of Sale** - Fast checkout with barcode scanning support
+- 📈 **Financial Reports** - Revenue tracking, expense management, and profit/loss analysis
+- 👥 **Party Management** - Handle customers, suppliers, and transactions
+- 🧾 **Invoicing** - Generate and manage sales invoices
+- 🤖 **AI Insights** - Business analytics powered by Gemini AI
+- 📱 **Responsive Design** - Works on desktop, tablet, and mobile
 
-### 🛍️ POS & sales
-- **POS terminal** — product search by name / SKU / barcode, add to cart, discount & tax, checkout in seconds.
-- **Sales history** — list, filter and drill into past sales.
-- **Invoices** — auto-numbered per business, printable, downloadable as **PDF**.
-- **Returns** — full or partial item returns that restock inventory and correct customer balances.
-- **Customers** — records with phone/email/address, credit support, outstanding balances and per-customer sales history.
+## Tech Stack
 
-### 📦 Inventory & purchasing
-- **Catalog** — categories + products (SKU, barcode, brand, unit, prices, min-stock) with duplicate SKU/barcode protection.
-- **Live stock** — quantity-on-hand is updated by every purchase, sale and return.
-- **Stock health** — low-stock and out-of-stock flags, min-stock defaults, inventory overview with filters.
-- **Adjustments** — manual stock corrections with a mandatory reason and full transaction history.
-- **Purchases** — supplier orders, auto-calculated totals, partial/full payments, supplier outstanding balances and purchase history.
+**Backend:**
+- FastAPI (Python 3.11+)
+- PostgreSQL 15
+- SQLAlchemy ORM
+- Alembic migrations
+- JWT authentication
+- Pydantic validation
 
-### 💰 Finance & analytics
-- **Dashboard** — revenue, gross/net profit, expenses, inventory value, sales trend chart, bestsellers and stock alerts in one view.
-- **Finance** — revenue, COGS and profit for today / 7 days / 30 days / 12 months / all time or custom date ranges.
-- **Reports** — sales, inventory, purchases, expenses and profit; export as **CSV, Excel or PDF**.
-- **Expenses** — categorized operational expenses (rent, salary, electricity, transport, maintenance, …).
+**Frontend:**
+- Next.js 14
+- TypeScript
+- TailwindCSS
+- React Query
+- Axios
 
-### 🤖 AI assistant (deterministic analytics + optional Gemini polish)
-- **Q&A** — natural-language questions answered from your live business data.
-- **Insights** — automatically spotted sales changes, expense warnings and demand shifts.
-- **Forecasts** — 30+ day demand predictions per product from real sales velocity.
-- **Reorder recommendations** — `predicted demand + min-stock − on-hand` per product.
-- **Anomaly detection** — z-score outliers on daily revenue and abnormally large sales.
-- **Recommendation history** — mark insights as reviewed / acted upon.
+**Deployment:**
+- Azure App Service (Docker containers)
+- Azure Container Registry
+- Azure Database for PostgreSQL
+- GitHub Actions CI/CD
 
-### 🏢 Workspace admin & SaaS
-- **Multi-tenancy** — every record is scoped to a business; cross-business access is blocked.
-- **Settings** — business profile, currency, tax rate, invoice format, default min stock.
-- **Audit log** — append-only history of who changed what and when.
-- **Subscription / billing** — free / basic / pro plans with product & team limits and usage meters.
-
----
-
-## Tech stack
-
-| Layer          | Technology                                                        |
-| -------------- | ----------------------------------------------------------------- |
-| Frontend       | **Next.js 14 (App Router) + TypeScript**                          |
-| Styling        | **Tailwind CSS** (custom shadcn-style component set)              |
-| Data fetching  | **TanStack Query (React Query)** + Axios                          |
-| Charts         | **Recharts**                                                      |
-| Backend        | **FastAPI (Python 3.11)**                                         |
-| ORM            | **SQLAlchemy 2.x**                                                |
-| Database       | **MySQL 8** locally · **PostgreSQL 16** for deployment            |
-| Validation     | **Pydantic v2**                                                   |
-| Authentication | **JWT (python-jose) + bcrypt**                                    |
-| AI             | In-app deterministic analytics + optional **Gemini API** polish   |
-| Exports        | **ReportLab** (PDF) · **OpenPyXL** (Excel) · stdlib `csv`         |
-| File storage   | Local filesystem (`backend/uploads`)                              |
-| Testing        | **Pytest** + FastAPI TestClient (SQLite in-memory)                |
-
-> App code is database-dialect agnostic via SQLAlchemy — switching MySQL → Postgres is only a `DATABASE_URL` + driver change.
-
----
-
-## Repository layout
+## Architecture
 
 ```
-B/
-├── backend/                 # FastAPI service
+StockPilot/
+├── backend/          # FastAPI backend
 │   ├── app/
-│   │   ├── api/v1/          # routers: auth, products, sales, finance, ai, ...
-│   │   ├── core/            # config, security (JWT), dependencies (RBAC ctx)
-│   │   ├── db/              # engine/session, model registration
-│   │   ├── models/          # SQLAlchemy models (sales, products, finance, ...)
-│   │   ├── schemas/         # Pydantic request/response schemas
-│   │   ├── services/        # finance, inventory, invoice, AI logic
-│   │   └── main.py          # FastAPI app + router registration
-│   ├── tests/               # pytest suite (SQLite in-memory — no MySQL needed)
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/                # Next.js 14 app
-│   ├── app/                 # routes: login, dashboard, pos, products, ...
-│   ├── components/          # Shell (sidebar) + UI primitives
-│   └── lib/                 # axios api client + auth context
-├── docker-compose.yml       # OPTIONAL legacy MySQL-in-Docker helper (not for local run)
-├── docker-compose.prod.yml  # DEPLOY stack: Postgres + API
-└── ProjectDetails.md        # functional requirements (FR-1..FR-37)
+│   │   ├── api/      # API routes
+│   │   ├── core/     # Configuration & security
+│   │   ├── models/   # Database models
+│   │   ├── schemas/  # Pydantic schemas
+│   │   └── services/ # Business logic
+│   ├── alembic/      # Database migrations
+│   └── tests/        # Backend tests
+│
+├── frontend/         # Next.js frontend
+│   ├── app/          # Pages (App Router)
+│   ├── components/   # React components
+│   ├── lib/          # Utilities & API client
+│   └── hooks/        # Custom React hooks
+│
+└── .github/workflows/  # CI/CD pipelines
 ```
 
----
+## Local Development
 
-<a id="run-locally"></a>
-## How to run locally (Windows, no Docker)
+### Prerequisites
+- Python 3.11+
+- Node.js 20+
+- PostgreSQL 15+
 
-Local setup uses **native MySQL** — no Docker, no Postgres install needed.
+### Backend Setup
 
-### 0) Prerequisites
-
-- **Python 3.11+**
-- **Node.js 18+**
-- **MySQL 8 running locally** with a database named `pos_saas`
-  (default dev connection: `mysql+pymysql://root:root@localhost:3306/pos_saas`)
-
-### 1) Backend (FastAPI)
-
-```powershell
-cd E:\B\backend
-
-# create + fill the env file (or copy .env.example)
-#   DATABASE_URL=mysql+pymysql://root:root@localhost:3306/pos_saas
-#   SECRET_KEY=change-me-to-a-long-random-secret-in-production
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# (optional) create tables now — they are also auto-created on server startup
-python -c "from app.db.base import Base; import app.models; from app.db.session import engine; Base.metadata.create_all(bind=engine); print('tables ok')"
+# Configure environment
+cp .env.example .env
+# Edit .env with your database credentials
 
-# start the API
-uvicorn app.main:app --reload --port 8000
+# Run migrations
+alembic upgrade head
+
+# Start server
+uvicorn app.main:app --reload
 ```
 
-- Swagger docs: <http://localhost:8000/docs>
-- Health check: <http://localhost:8000/health>
+Backend runs at http://localhost:8000
 
-On startup the app: creates any missing tables, creates any missing query
-indexes (non-destructive), and serves `/api/v1/...`.
+### Frontend Setup
 
-### 2) Frontend (Next.js)
-
-```powershell
-cd E:\B\frontend
+```bash
+cd frontend
 npm install
 
-# frontend\.env.local must contain:
-#   NEXT_PUBLIC_API_URL=http://localhost:8000
+# Configure environment
+cp .env.example .env.local
+# Edit .env.local with backend URL
+
+# Start development server
 npm run dev
 ```
 
-Open **<http://localhost:3000>** → register an owner account (creates your
-business automatically) → you land on the dashboard.
+Frontend runs at http://localhost:3000
 
-### 3) Try the end-to-end flow
+## Deployment
 
-1. **Register** an owner account.
-2. **Categories → Products** — add a couple of products with prices.
-3. **Purchases** — buy stock from a supplier (stock increases automatically).
-4. **POS Terminal** — search a product, add to cart, checkout (stock reduces, invoice generated).
-5. **Dashboard / Finance / Reports** — live KPIs, trends and CSV/Excel/PDF exports.
-6. **AI Assistant** — ask "which products should I reorder?" for insights, forecasts and reorder suggestions.
+### Azure Resources
 
----
+The application is deployed on Azure using:
+- **Resource Group**: `stockpilot-rg`
+- **Container Registry**: `stockpilotacr.azurecr.io`
+- **Backend API**: https://stockpilot-api.azurewebsites.net
+- **Frontend Web**: https://stockpilot-web.azurewebsites.net
+- **Database**: PostgreSQL Flexible Server (B1ms - Free tier)
 
-<a id="run-the-tests"></a>
-## Run the tests
+### CI/CD Pipeline
 
-The suite uses **SQLite in-memory** — MySQL does not need to be running.
+GitHub Actions automatically deploys on push to `main` branch:
 
-```powershell
-cd E:\B\backend
-python -m pytest tests/ -v
+1. **Build** - Docker images are built using Azure ACR
+2. **Push** - Images tagged with commit SHA and `latest`
+3. **Deploy** - Web apps are restarted with new images
+
+### Manual Deployment
+
+```bash
+# Build and push images
+az acr build --registry stockpilotacr \
+  --image stockpilot-backend:latest \
+  --file backend/Dockerfile backend/
+
+az acr build --registry stockpilotacr \
+  --image stockpilot-frontend:latest \
+  --file frontend/Dockerfile \
+  --build-arg NEXT_PUBLIC_API_URL=https://stockpilot-api.azurewebsites.net \
+  frontend/
+
+# Restart apps
+az webapp restart --name stockpilot-api --resource-group stockpilot-rg
+az webapp restart --name stockpilot-web --resource-group stockpilot-rg
 ```
 
----
+## Database Migrations
 
-<a id="deploy"></a>
-## Deploy (Docker + Postgres — NOT for local use)
+```bash
+# Create a new migration
+alembic revision --autogenerate -m "description"
 
-On a server / VPS:
+# Apply migrations
+alembic upgrade head
 
-```powershell
-$env:SECRET_KEY="<long-random-secret>"
-docker compose -f docker-compose.prod.yml up --build -d
+# Run via Azure SSH
+az webapp ssh --name stockpilot-api --resource-group stockpilot-rg
+cd /app && alembic upgrade head
 ```
 
-This starts **postgres:16-alpine** + the API container (frontend can be built
-separately or served by any static host / reverse proxy).
+## Environment Variables
 
-**PaaS alternative (Render / Railway / Supabase / Neon):** create a managed
-Postgres and set environment variables:
+### Backend
+- `DATABASE_URL` - PostgreSQL connection string
+- `SECRET_KEY` - JWT signing key
+- `CORS_ORIGINS` - Allowed origins (comma-separated)
+- `GEMINI_API_KEY` - Google Gemini AI key (optional)
 
-```
-DATABASE_URL=postgresql+psycopg2://user:pass@host:5432/dbname
-SECRET_KEY=<long-random-secret>
-```
+### Frontend
+- `NEXT_PUBLIC_API_URL` - Backend API URL
 
-(`postgres://...` short URLs are also accepted — they are auto-normalized in
-`app/db/session.py`.)
+## API Documentation
 
----
+Interactive API docs available at:
+- Swagger UI: https://stockpilot-api.azurewebsites.net/docs
+- ReDoc: https://stockpilot-api.azurewebsites.net/redoc
 
-<a id="api-overview"></a>
-## API overview
+## License
 
-Base URL: **`/api/v1/...`** — interactive docs at `/docs`.
+Private - All Rights Reserved
 
-| Group        | Highlights                                                                    |
-| ------------ | ------------------------------------------------------------------------------ |
-| `auth`       | register, login (JWT), logout, me, forgot/reset password                        |
-| `businesses` | my business, update profile, logo upload                                        |
-| `employees`  | list/create team members, roles, activate/deactivate, reset password, remove    |
-| `categories` `products` | CRUD, search by name/SKU/barcode/brand, images, activate/deactivate  |
-| `suppliers` `customers` | CRUD + purchase/sales history + outstanding balances                 |
-| `inventory`  | overview + filters, low-stock/out-of-stock, transactions, manual adjustments    |
-| `purchases`  | create multi-item orders, pay, cancel (restock)                                 |
-| `sales`      | checkout (POS), history, detail, cancel; invoice view + PDF                     |
-| `returns`    | full/partial returns (restock + balance correction)                             |
-| `expenses`   | categorized operational expenses                                                |
-| `finance`    | revenue / COGS / profit by preset or custom range                               |
-| `analytics`  | dashboard KPIs, product/customer/supplier performance                           |
-| `reports`    | sales/inventory/purchases/expenses/profit + `format=csv\|excel\|pdf`            |
-| `settings`   | business config: currency, tax, invoice format, min-stock default               |
-| `subscription` | plan status, usage vs limits, plan change                                     |
-| `ai`         | chat Q&A, insights, forecast, reorder recommendations, anomalies, history       |
-| `audit-logs` | append-only activity log (Owner/Manager)                                        |
+## Contact
 
-**Auth:** send `Authorization: Bearer <JWT>` on every request. Multi-business
-users can pass `X-Business-Id: <id>` to select the active business context.
+For issues or questions, contact: [Your Contact Info]
