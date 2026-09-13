@@ -35,12 +35,23 @@ jobs:
             --file backend/Dockerfile \
             backend/
 
-      - name: Update and restart backend webapp
+      - name: Configure backend app settings
         run: |
+          # Get ACR credentials
+          ACR_USERNAME=$(az acr credential show --name ${{ env.ACR_NAME }} --query username -o tsv)
+          ACR_PASSWORD=$(az acr credential show --name ${{ env.ACR_NAME }} --query "passwords[0].value" -o tsv)
+          
+          # Configure container registry
           az webapp config container set \
             --name ${{ env.BACKEND_APP_NAME }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --container-image-name ${{ env.ACR_NAME }}.azurecr.io/stockpilot-backend:${{ github.sha }}
+            --container-image-name ${{ env.ACR_NAME }}.azurecr.io/stockpilot-backend:${{ github.sha }} \
+            --container-registry-url https://${{ env.ACR_NAME }}.azurecr.io \
+            --container-registry-user $ACR_USERNAME \
+            --container-registry-password $ACR_PASSWORD
+
+      - name: Update and restart backend webapp
+        run: |
           az webapp restart \
             --name ${{ env.BACKEND_APP_NAME }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
@@ -69,12 +80,23 @@ jobs:
             --build-arg NEXT_PUBLIC_API_URL=https://${{ env.BACKEND_APP_NAME }}.azurewebsites.net \
             frontend/
 
-      - name: Update and restart frontend webapp
+      - name: Configure frontend app settings
         run: |
+          # Get ACR credentials
+          ACR_USERNAME=$(az acr credential show --name ${{ env.ACR_NAME }} --query username -o tsv)
+          ACR_PASSWORD=$(az acr credential show --name ${{ env.ACR_NAME }} --query "passwords[0].value" -o tsv)
+          
+          # Configure container registry
           az webapp config container set \
             --name ${{ env.FRONTEND_APP_NAME }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --container-image-name ${{ env.ACR_NAME }}.azurecr.io/stockpilot-frontend:${{ github.sha }}
+            --container-image-name ${{ env.ACR_NAME }}.azurecr.io/stockpilot-frontend:${{ github.sha }} \
+            --container-registry-url https://${{ env.ACR_NAME }}.azurecr.io \
+            --container-registry-user $ACR_USERNAME \
+            --container-registry-password $ACR_PASSWORD
+
+      - name: Update and restart frontend webapp
+        run: |
           az webapp restart \
             --name ${{ env.FRONTEND_APP_NAME }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
