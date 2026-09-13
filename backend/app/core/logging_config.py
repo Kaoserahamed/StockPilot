@@ -46,7 +46,7 @@ def setup_logging(level: str = "INFO", json_format: bool = True) -> None:
 
     if json_format and _HAS_JSON:
         fmt = "%(asctime)s %(levelname)s %(name)s %(message)s %(app)s"
-        formatter = jsonlogger.Jsonfmt(fmt, datefmt="%Y-%m-%dT%H:%M:%S%z")
+        formatter = jsonlogger.JsonFormatter(fmt, datefmt="%Y-%m-%dT%H:%M:%S%z")
     else:
         fmt = "[%(asctime)s] %(levelname)-8s %(name)s: %(message)s"
         formatter = logging.Formatter(fmt, datefmt="%Y-%m-%d %H:%M:%S")
