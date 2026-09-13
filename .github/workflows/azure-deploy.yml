@@ -35,8 +35,12 @@ jobs:
             --file backend/Dockerfile \
             backend/
 
-      - name: Restart backend webapp
+      - name: Update and restart backend webapp
         run: |
+          az webapp config container set \
+            --name ${{ env.BACKEND_APP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --container-image-name ${{ env.ACR_NAME }}.azurecr.io/stockpilot-backend:${{ github.sha }}
           az webapp restart \
             --name ${{ env.BACKEND_APP_NAME }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
@@ -65,8 +69,12 @@ jobs:
             --build-arg NEXT_PUBLIC_API_URL=https://${{ env.BACKEND_APP_NAME }}.azurewebsites.net \
             frontend/
 
-      - name: Restart frontend webapp
+      - name: Update and restart frontend webapp
         run: |
+          az webapp config container set \
+            --name ${{ env.FRONTEND_APP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --container-image-name ${{ env.ACR_NAME }}.azurecr.io/stockpilot-frontend:${{ github.sha }}
           az webapp restart \
             --name ${{ env.FRONTEND_APP_NAME }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
