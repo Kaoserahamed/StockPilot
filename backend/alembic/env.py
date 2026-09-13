@@ -23,7 +23,10 @@ import app.models  # noqa: F401 - register all models
 config = context.config
 
 # Override sqlalchemy.url with our settings (reads DATABASE_URL from env)
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# NOTE: ConfigParser uses % for interpolation, so escape any % in the URL
+# (e.g. %21, %23 from URL-encoded passwords) as %% to avoid
+# "ValueError: invalid interpolation syntax" during `alembic upgrade head`.
+config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:
