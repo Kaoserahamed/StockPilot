@@ -21,7 +21,7 @@ export default function Register() {
         <div className="mt-5 grid gap-3.5 sm:grid-cols-2">
           <Field label="Your name"><Input value={f.owner_name} onChange={(e) => set('owner_name', e.target.value)} placeholder="Ayesha Rahman" /></Field>
           <Field label="Email"><Input value={f.email} onChange={(e) => set('email', e.target.value)} placeholder="you@shop.com" /></Field>
-          <Field label="Password"><Input type="password" value={f.password} onChange={(e) => set('password', e.target.value)} placeholder="Minimum 6 characters" /></Field>
+          <Field label="Password"><Input type="password" value={f.password} onChange={(e) => set('password', e.target.value)} placeholder="Min 8 chars, upper + lower + digit + symbol" /></Field>
           <Field label="Shop name"><Input value={f.business_name} onChange={(e) => set('business_name', e.target.value)} placeholder="Rahman Store" /></Field>
           <div className="sm:col-span-2"><Field label="Shop address"><Input value={f.business_address} onChange={(e) => set('business_address', e.target.value)} placeholder="Street, area, city" /></Field></div>
         </div>
