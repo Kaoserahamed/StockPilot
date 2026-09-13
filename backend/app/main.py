@@ -43,18 +43,6 @@ async def lifespan(app: FastAPI):
     logger.info("Database connections closed")
 
 
-@app.get("/", include_in_schema=False)
-def root():
-    """Root endpoint — returns basic API info."""
-    return {
-        "name": settings.app_name,
-        "version": "1.0.0",
-        "docs": "/docs",
-        "health": "/health",
-        "api": "/api/v1",
-    }
-
-
 app = FastAPI(title=settings.app_name, lifespan=lifespan,
     description="""
 ## StockPilot API - Inventory & POS SaaS
@@ -106,6 +94,18 @@ register_exception_handlers(app)
 
 # --- Health check endpoints ---
 app.include_router(health_api.router)
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    """Root endpoint — returns basic API info."""
+    return {
+        "name": settings.app_name,
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health",
+        "api": "/api/v1",
+    }
 
 # --- Audit logs endpoint ---
 @app.get("/api/v1/audit-logs")

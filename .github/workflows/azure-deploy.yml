@@ -52,6 +52,8 @@ jobs:
 
       - name: Ensure ACR password is set as app setting
         run: |
+          # Re-fetch credentials (each step runs in a fresh shell, so ACR_PASSWORD must be re-read)
+          ACR_PASSWORD=$(az acr credential show --name ${{ env.ACR_NAME }} --query "passwords[0].value" -o tsv)
           # Re-set the password to ensure it's not lost after container config
           az webapp config appsettings set \
             --name ${{ env.BACKEND_APP_NAME }} \
@@ -105,6 +107,8 @@ jobs:
 
       - name: Ensure ACR password is set as app setting (frontend)
         run: |
+          # Re-fetch credentials (each step runs in a fresh shell, so ACR_PASSWORD must be re-read)
+          ACR_PASSWORD=$(az acr credential show --name ${{ env.ACR_NAME }} --query "passwords[0].value" -o tsv)
           # Re-set the password to ensure it's not lost after container config
           az webapp config appsettings set \
             --name ${{ env.FRONTEND_APP_NAME }} \
