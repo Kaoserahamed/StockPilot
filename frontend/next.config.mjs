@@ -12,10 +12,10 @@ const nextConfig = {
       { protocol: 'https', hostname: '**' },
     ],
   },
-  // Environment variables
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-  },
+  // NOTE: Do NOT set NEXT_PUBLIC_API_URL here via `env:`.
+  // NEXT_PUBLIC_* vars are inlined at build time from the environment.
+  // Setting a fallback here would bake 'http://localhost:8000' into the
+  // production bundle. The Dockerfile passes the real URL via build-arg.
   // Experimental features
   experimental: {
     optimizePackageImports: ['recharts', '@tanstack/react-query'],
