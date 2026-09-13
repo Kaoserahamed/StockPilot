@@ -44,18 +44,18 @@ def revenue_summary(db: Session, business_id: int, start, end) -> dict:
 
 
 def revenue_trend(db: Session, business_id: int, start, end, bucket: str = "day") -> list[dict]:
-    """FR-18: revenue trend grouped by day/week/month."""
+    """FR-18: revenue trend grouped by day/week/month (Postgres + MySQL safe)."""
     from app.services.finance._utils import MAX_TREND_BUCKETS
     if bucket == "month":
-        fmt = "%Y-%m"
+        period = func.to_char(Sale.created_at, "YYYY-MM").label("period")
     elif bucket == "week":
-        fmt = "%Y-W%W"
+        period = func.to_char(Sale.created_at, 'IYYY-"W"IW').label("period")
     else:
-        fmt = "%Y-%m-%d"
+        period = func.to_char(Sale.created_at, "YYYY-MM-DD").label("period")
     rows = db.query(
-        func.date_format(Sale.created_at, fmt).label("period"),
+        period,
         func.count(Sale.id),
         func.coalesce(func.sum(Sale.total_amount), 0),
     ).filter(*_sale_range_filters(business_id, start, end)
-              ).group_by("period").order_by("period").limit(MAX_TREND_BUCKETS).all()
-    return [{"period": r[0], "orders": int(r[1] or 0), "revenue": float(r[2] or 0)} for r in rows]
+              ).group_by(period).order_by(period).limit(MAX_TREND_BUCKETS).all()
+    return [{"period": str(r[0]), "orders": int(r[1] or 0), "revenue": float(r[2] or 0)} for r in rows]

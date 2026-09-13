@@ -10,10 +10,16 @@ from app.services.finance._utils import parse_dt, resolve_range, REVENUE_STATUSE
 from app.services.finance._revenue import revenue_summary, sales_in_range, revenue_trend
 from app.services.finance._expenses import expense_summary, expense_breakdown
 from app.services.finance._analytics import top_products, customer_stats, supplier_stats
+from app.services.finance._missing import (  # noqa: F401
+    profit_summary, sales_trend, inventory_value,
+    expenses_total, cogs_summary, avg_costs,
+)
 
 __all__ = [
     "parse_dt", "resolve_range", "REVENUE_STATUSES", "PRESETS",
     "revenue_summary", "sales_in_range", "revenue_trend",
     "expense_summary", "expense_breakdown",
     "top_products", "customer_stats", "supplier_stats",
+    "profit_summary", "sales_trend", "inventory_value",
+    "expenses_total", "cogs_summary", "avg_costs",
 ]

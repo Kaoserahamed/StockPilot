@@ -69,7 +69,14 @@ For issues and feature requests, contact support.
     redoc_url="/redoc" if settings.environment != "production" else None,
 )
 
-# --- CORS (environment-based) ---
+# --- Custom middleware (security headers, request context) ---
+register_middleware(app)
+
+# --- Request timeouts ---
+setup_timeouts(app)
+
+# --- CORS (registered LAST so it is outermost and wraps every response,
+# --- including timeout 504s, with Access-Control headers) ---
 if settings.cors_origins.strip() == "*":
     allowed_origins = ["*"]
 else:
@@ -82,12 +89,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# --- Custom middleware (security headers, request context) ---
-register_middleware(app)
-
-# --- Request timeouts ---
-setup_timeouts(app)
 
 # --- Exception handlers ---
 register_exception_handlers(app)
