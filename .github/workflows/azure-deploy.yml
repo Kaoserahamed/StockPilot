@@ -1,0 +1,78 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AZURE_RESOURCE_GROUP: stockpilot-rg
+  AZURE_LOCATION: southeastasia
+  ACR_NAME: stockpilotacr
+  BACKEND_APP_NAME: stockpilot-api
+  FRONTEND_APP_NAME: stockpilot-web
+
+jobs:
+  build-and-deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: false
+
+      - name: Build and push backend to ACR
+        run: |
+          az acr build \
+            --registry ${{ env.ACR_NAME }} \
+            --image stockpilot-backend:${{ github.sha }} \
+            --image stockpilot-backend:latest \
+            --file backend/Dockerfile \
+            backend/
+
+      - name: Restart backend webapp
+        run: |
+          az webapp restart \
+            --name ${{ env.BACKEND_APP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+
+  build-and-deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy-backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: false
+
+      - name: Build and push frontend to ACR
+        run: |
+          az acr build \
+            --registry ${{ env.ACR_NAME }} \
+            --image stockpilot-frontend:${{ github.sha }} \
+            --image stockpilot-frontend:latest \
+            --file frontend/Dockerfile \
+            --build-arg NEXT_PUBLIC_API_URL=https://${{ env.BACKEND_APP_NAME }}.azurewebsites.net \
+            frontend/
+
+      - name: Restart frontend webapp
+        run: |
+          az webapp restart \
+            --name ${{ env.FRONTEND_APP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+
+      - name: Deployment Summary
+        run: |
+          echo "✅ Deployment successful!"
+          echo "🌐 Frontend: https://${{ env.FRONTEND_APP_NAME }}.azurewebsites.net"
+          echo "🔧 Backend API: https://${{ env.BACKEND_APP_NAME }}.azurewebsites.net"

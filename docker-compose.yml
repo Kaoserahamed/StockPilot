@@ -1,0 +1,29 @@
+services:
+  # OPTIONAL legacy helper: MySQL-in-Docker for machines WITHOUT native MySQL.
+  # LOCAL RUN (this laptop): use NATIVE MySQL directly — DO NOT `docker compose up` this file.
+  # DEPLOY: use docker-compose.prod.yml (Postgres), NOT this file.
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: pos_saas
+      MYSQL_USER: pos_user
+      MYSQL_PASSWORD: pos_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: mysql+pymysql://pos_user:pos_password@db:3306/pos_saas
+      SECRET_KEY: change-me-to-a-long-random-secret-in-production
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      - db
+
+volumes:
+  mysql_data:

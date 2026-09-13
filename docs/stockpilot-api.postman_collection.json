@@ -1,0 +1,54 @@
+{
+  "info": {
+    "name": "StockPilot API",
+    "description": "Multi-tenant inventory management, POS, finance tracking, and AI insights API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000/api/v1" },
+    { "key": "token", "value": "" },
+    { "key": "businessId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        { "name": "Register", "request": { "method": "POST", "url": "{{baseUrl}}/auth/register", "body": { "mode": "raw", "raw": "{\"owner_name\":\"Test User\",\"email\":\"test@shop.com\",\"password\":\"Secure123!\",\"business_name\":\"Test Shop\"}", "options": { "raw": { "language": "json" } } } } },
+        { "name": "Login", "request": { "method": "POST", "url": "{{baseUrl}}/auth/login", "body": { "mode": "raw", "raw": "{\"username\":\"test@shop.com\",\"password\":\"Secure123!\"}", "options": { "raw": { "language": "json" } } } } },
+        { "name": "Refresh Token", "request": { "method": "POST", "url": "{{baseUrl}}/auth/refresh", "body": { "mode": "raw", "raw": "{\"refresh_token\":\"{{token}}\"}", "options": { "raw": { "language": "json" } } } } },
+        { "name": "Logout", "request": { "method": "POST", "url": "{{baseUrl}}/auth/logout" } },
+        { "name": "Me", "request": { "method": "GET", "url": "{{baseUrl}}/auth/me" } }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        { "name": "List Products", "request": { "method": "GET", "url": "{{baseUrl}}/products" } },
+        { "name": "Create Product", "request": { "method": "POST", "url": "{{baseUrl}}/products", "body": { "mode": "raw", "raw": "{\"name\":\"Test Product\",\"sku\":\"TEST-001\",\"selling_price\":100,\"purchase_price\":50}", "options": { "raw": { "language": "json" } } } } },
+        { "name": "Get Product", "request": { "method": "GET", "url": "{{baseUrl}}/products/1" } },
+        { "name": "Update Product", "request": { "method": "PATCH", "url": "{{baseUrl}}/products/1", "body": { "mode": "raw", "raw": "{\"selling_price\":120}", "options": { "raw": { "language": "json" } } } } }
+      ]
+    },
+    {
+      "name": "Sales",
+      "item": [
+        { "name": "List Sales", "request": { "method": "GET", "url": "{{baseUrl}}/sales" } },
+        { "name": "Checkout", "request": { "method": "POST", "url": "{{baseUrl}}/sales/checkout", "body": { "mode": "raw", "raw": "{\"items\":[{\"product_id\":1,\"quantity\":2,\"unit_price\":100}],\"paid_amount\":200,\"payment_method\":\"cash\"}", "options": { "raw": { "language": "json" } } } } }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        { "name": "Dashboard", "request": { "method": "GET", "url": "{{baseUrl}}/dashboard?preset=month" } }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        { "name": "Health Check", "request": { "method": "GET", "url": "http://localhost:8000/health" } },
+        { "name": "Readiness Check", "request": { "method": "GET", "url": "http://localhost:8000/health/ready" } }
+      ]
+    }
+  ]
+}
+
